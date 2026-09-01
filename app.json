@@ -7,6 +7,14 @@
     "icon": "./assets/images/icon.png",
     "scheme": "clockapp",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/21907d07-8da3-4078-a0c3-2faaf11df70a",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.alen899993.clockapp",
@@ -55,6 +63,7 @@
       "expo-secure-store",
       "expo-audio",
       "expo-dev-client",
+      "expo-updates",
       [
         "expo-calendar",
         {

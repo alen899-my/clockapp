@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
   timeText: {
     ...Typography.clockTime,
     fontVariant: ['tabular-nums'],
-    textShadowColor: 'rgba(168, 85, 247, 0.45)',
+    textShadowColor: 'rgba(0, 0, 0, 0.40)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    textShadowRadius: 8,
   },
   periodBadge: {
     marginLeft: Spacing.sm,

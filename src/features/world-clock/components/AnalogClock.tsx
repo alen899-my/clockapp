@@ -1,38 +1,90 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Svg, { Circle, Line, Defs, RadialGradient, Stop, G } from 'react-native-svg';
+import Svg, {
+  Circle,
+  Defs,
+  G,
+  Line,
+  LinearGradient,
+  RadialGradient,
+  Stop,
+  Text as SvgText,
+} from 'react-native-svg';
+import { getTimeOfDayTheme } from '@/features/theme/timeOfDayTheme';
 import { useAppTheme } from '@/features/theme/useThemeSettings';
 
 interface AnalogClockProps {
-  date: Date;
+  date?: Date;
   size?: number;
 }
+
+const getTimeAccentColor = (key: string): { primary: string; secondary: string; glow: string } => {
+  switch (key) {
+    case '6am-8am':
+    case '8am-11am':
+      return { primary: '#FBBF24', secondary: '#F59E0B', glow: 'rgba(251, 191, 36, 0.35)' };
+    case '11am-1pm':
+    case '1pm-3pm':
+      return { primary: '#38BDF8', secondary: '#0284C7', glow: 'rgba(56, 189, 248, 0.35)' };
+    case '3pm-5pm':
+      return { primary: '#FB923C', secondary: '#EA580C', glow: 'rgba(251, 146, 60, 0.35)' };
+    case '5pm-630pm':
+      return { primary: '#F43F5E', secondary: '#E11D48', glow: 'rgba(244, 63, 94, 0.35)' };
+    case '630pm-715pm':
+      return { primary: '#818CF8', secondary: '#6366F1', glow: 'rgba(129, 140, 248, 0.35)' };
+    case '730pm-9pm':
+      return { primary: '#C084FC', secondary: '#A855F7', glow: 'rgba(192, 132, 252, 0.35)' };
+    case '9pm-12am':
+    case '12am-4am':
+    case '4am-6am':
+    default:
+      return { primary: '#60A5FA', secondary: '#3B82F6', glow: 'rgba(96, 165, 250, 0.35)' };
+  }
+};
 
 export const AnalogClock: React.FC<AnalogClockProps> = ({ date, size = 220 }) => {
   const { theme } = useAppTheme();
   const radius = size / 2;
   const center = radius;
 
-  const seconds = date.getSeconds();
-  const minutes = date.getMinutes();
-  const hours = date.getHours() % 12;
+  const [liveNow, setLiveNow] = useState(() => Date.now());
 
-  // Hand Angles (in degrees)
+  useEffect(() => {
+    let animId: number;
+    const tick = () => {
+      setLiveNow(Date.now());
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  const current = new Date(liveNow);
+  const activeDate = date || current;
+  const timeTheme = getTimeOfDayTheme(activeDate);
+  const timeAccent = getTimeAccentColor(timeTheme.key);
+
+  const ms = current.getMilliseconds();
+  const seconds = current.getSeconds() + ms / 1000;
+  const minutes = current.getMinutes() + seconds / 60;
+  const hours = (current.getHours() % 12) + minutes / 60;
+
+  // Hand Angles (in degrees) — smooth continuous sweep
   const secondAngle = seconds * 6; // 360 / 60
-  const minuteAngle = minutes * 6 + seconds * 0.1;
-  const hourAngle = hours * 30 + minutes * 0.5;
+  const minuteAngle = minutes * 6;
+  const hourAngle = hours * 30;
 
   // Hand lengths
-  const hourLength = radius * 0.5;
-  const minuteLength = radius * 0.72;
-  const secondLength = radius * 0.82;
+  const hourLength = radius * 0.46;
+  const minuteLength = radius * 0.68;
+  const secondLength = radius * 0.80;
 
   // Hour markers (1 to 12)
   const hourTicks = Array.from({ length: 12 }).map((_, i) => {
     const angle = ((i + 1) * 30 * Math.PI) / 180;
     const isMajor = (i + 1) % 3 === 0;
-    const outerR = radius - 14;
-    const innerR = outerR - (isMajor ? 10 : 6);
+    const outerR = radius - 8;
+    const innerR = outerR - (isMajor ? 6 : 4);
 
     const x1 = center + outerR * Math.sin(angle);
     const y1 = center - outerR * Math.cos(angle);
@@ -46,10 +98,34 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ date, size = 220 }) =>
         y1={y1}
         x2={x2}
         y2={y2}
-        stroke={isMajor ? '#FFFFFF' : theme.tickMarker}
-        strokeWidth={isMajor ? 3 : 1.5}
+        stroke={isMajor ? timeAccent.primary : 'rgba(255, 255, 255, 0.35)'}
+        strokeWidth={isMajor ? 2.5 : 1.2}
         strokeLinecap="round"
       />
+    );
+  });
+
+  // Hour numbers (1 to 12) inside the dial
+  const hourNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => {
+    const angle = (num * 30 * Math.PI) / 180;
+    const numR = radius - 24;
+    const x = center + numR * Math.sin(angle);
+    const y = center - numR * Math.cos(angle);
+    const isCardinal = num % 3 === 0;
+
+    return (
+      <SvgText
+        key={`num-${num}`}
+        x={x}
+        y={y + 4.5}
+        fill={isCardinal ? timeAccent.primary : '#FFFFFF'}
+        fontSize={isCardinal ? (size > 200 ? 14 : 12) : (size > 200 ? 11 : 10)}
+        fontWeight={isCardinal ? '700' : '500'}
+        textAnchor="middle"
+        opacity={isCardinal ? 1 : 0.85}
+      >
+        {num}
+      </SvgText>
     );
   });
 
@@ -57,46 +133,57 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ date, size = 220 }) =>
     <View style={[styles.container, { width: size, height: size }]}>
       <Svg width={size} height={size}>
         <Defs>
-          <RadialGradient id="liquidGlassGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.18" />
-            <Stop offset="70%" stopColor="#FFFFFF" stopOpacity="0.04" />
-            <Stop offset="100%" stopColor="rgba(0, 0, 0, 0.25)" stopOpacity="0.5" />
+          {/* Dynamic Time-of-Day Radial Glow */}
+          <RadialGradient id="timeThemeDialGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={timeAccent.primary} stopOpacity="0.22" />
+            <Stop offset="65%" stopColor={timeAccent.secondary} stopOpacity="0.08" />
+            <Stop offset="100%" stopColor="rgba(0, 0, 0, 0.65)" stopOpacity="0.75" />
           </RadialGradient>
+
+          {/* Liquid Glass Edge Highlight */}
+          <LinearGradient id="dialRimGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <Stop offset="0%" stopColor={timeAccent.primary} stopOpacity="0.8" />
+            <Stop offset="50%" stopColor="rgba(255, 255, 255, 0.4)" stopOpacity="0.4" />
+            <Stop offset="100%" stopColor={timeAccent.secondary} stopOpacity="0.6" />
+          </LinearGradient>
         </Defs>
 
-        {/* Outer Liquid Glass Dial */}
+        {/* Outer Circular Dial Face */}
         <Circle
           cx={center}
           cy={center}
           r={radius - 4}
-          fill="url(#liquidGlassGlow)"
-          stroke={theme.clockBorder}
+          fill="url(#timeThemeDialGlow)"
+          stroke="url(#dialRimGradient)"
           strokeWidth={1.5}
         />
 
-        {/* Inner Specular Ring */}
+        {/* Inner Subtle Specular Track */}
         <Circle
           cx={center}
           cy={center}
-          r={radius - 18}
+          r={radius - 36}
           fill="transparent"
-          stroke="rgba(255, 255, 255, 0.25)"
+          stroke="rgba(255, 255, 255, 0.12)"
           strokeWidth={1}
-          strokeDasharray="3 6"
+          strokeDasharray="2 4"
         />
 
         {/* Hour Ticks */}
         {hourTicks}
 
+        {/* Inside Numbers (1 - 12) */}
+        {hourNumbers}
+
         {/* Hour Hand */}
         <G rotation={hourAngle} origin={`${center}, ${center}`}>
           <Line
             x1={center}
-            y1={center + 12}
+            y1={center + 10}
             x2={center}
             y2={center - hourLength}
-            stroke={theme.hourHand}
-            strokeWidth={4}
+            stroke="#FFFFFF"
+            strokeWidth={3.5}
             strokeLinecap="round"
           />
         </G>
@@ -105,37 +192,37 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ date, size = 220 }) =>
         <G rotation={minuteAngle} origin={`${center}, ${center}`}>
           <Line
             x1={center}
-            y1={center + 16}
+            y1={center + 14}
             x2={center}
             y2={center - minuteLength}
-            stroke={theme.minuteHand}
-            strokeWidth={2.8}
+            stroke="rgba(255, 255, 255, 0.9)"
+            strokeWidth={2.5}
             strokeLinecap="round"
           />
         </G>
 
-        {/* Second Hand */}
+        {/* Second Hand (Smooth Time-Themed Needle) */}
         <G rotation={secondAngle} origin={`${center}, ${center}`}>
           <Line
             x1={center}
-            y1={center + 20}
+            y1={center + 18}
             x2={center}
             y2={center - secondLength}
-            stroke={theme.secondHand}
-            strokeWidth={1.5}
+            stroke={timeAccent.primary}
+            strokeWidth={1.6}
             strokeLinecap="round"
           />
           <Circle
             cx={center}
-            cy={center - secondLength + 14}
+            cy={center - secondLength + 12}
             r={2.5}
-            fill="#FFFFFF"
+            fill={timeAccent.primary}
           />
         </G>
 
-        {/* Center Jewel / Crystal Dot */}
-        <Circle cx={center} cy={center} r={5} fill="#FFFFFF" />
-        <Circle cx={center} cy={center} r={2} fill="rgba(0, 0, 0, 0.5)" />
+        {/* Center Pivot Jewel */}
+        <Circle cx={center} cy={center} r={4.5} fill={timeAccent.primary} />
+        <Circle cx={center} cy={center} r={2} fill="#FFFFFF" />
       </Svg>
     </View>
   );
@@ -145,10 +232,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FFFFFF',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.20,
-    shadowRadius: 14,
-    elevation: 6,
   },
 });
+

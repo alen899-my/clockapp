@@ -20,6 +20,14 @@ function RootNavigation() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, animation: 'fade' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="create-plan"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_bottom',
+            presentation: 'card',
+          }}
+        />
       </Stack>
     </>
   );

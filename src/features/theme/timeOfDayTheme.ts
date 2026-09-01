@@ -6,6 +6,7 @@ export interface TimeOfDayInfo {
   subtitle: string;
   image: ImageSourcePropType;
   overlayGradient: [string, string, string];
+  bodyGradient: [string, string, string];
   blurIntensity: number;
 }
 
@@ -28,7 +29,7 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
   const minutes = date.getMinutes();
   const totalMinutes = hours * 60 + minutes;
 
-  // 12am - 4am (00:00 - 04:00)
+  // 12am - 4am (00:00 - 04:00) Midnight Calm
   if (totalMinutes < 240) {
     return {
       key: '12am-4am',
@@ -36,11 +37,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '12:00 AM — 04:00 AM',
       image: TIME_THEME_IMAGES['12am-4am'],
       overlayGradient: ['rgba(0, 0, 0, 0.25)', 'rgba(0, 0, 0, 0.50)', 'rgba(0, 0, 0, 0.85)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#030712', '#0A1226', '#141E3A'],
       blurIntensity: 18,
     };
   }
 
-  // 4am - 6am (04:00 - 06:00)
+  // 4am - 6am (04:00 - 06:00) Dawn Twilight
   if (totalMinutes < 360) {
     return {
       key: '4am-6am',
@@ -48,11 +51,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '04:00 AM — 06:00 AM',
       image: TIME_THEME_IMAGES['4am-6am'],
       overlayGradient: ['rgba(0, 0, 0, 0.20)', 'rgba(0, 0, 0, 0.45)', 'rgba(0, 0, 0, 0.82)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#060B18', '#111D38', '#1F2F54'],
       blurIntensity: 16,
     };
   }
 
-  // 6am - 8am (06:00 - 08:00)
+  // 6am - 8am (06:00 - 08:00) Golden Sunrise
   if (totalMinutes < 480) {
     return {
       key: '6am-8am',
@@ -60,11 +65,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '06:00 AM — 08:00 AM',
       image: TIME_THEME_IMAGES['6am-8am'],
       overlayGradient: ['rgba(0, 0, 0, 0.18)', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.80)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#0E0818', '#211333', '#3A1E4A'],
       blurIntensity: 16,
     };
   }
 
-  // 8am - 11am (08:00 - 11:00)
+  // 8am - 11am (08:00 - 11:00) Morning Radiance
   if (totalMinutes < 660) {
     return {
       key: '8am-11am',
@@ -72,11 +79,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '08:00 AM — 11:00 AM',
       image: TIME_THEME_IMAGES['8am-11am'],
       overlayGradient: ['rgba(0, 0, 0, 0.18)', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.80)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#061122', '#0E2442', '#183B64'],
       blurIntensity: 16,
     };
   }
 
-  // 11am - 1pm (11:00 - 13:00)
+  // 11am - 1pm (11:00 - 13:00) High Noon
   if (totalMinutes < 780) {
     return {
       key: '11am-1pm',
@@ -84,11 +93,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '11:00 AM — 01:00 PM',
       image: TIME_THEME_IMAGES['11am-1pm'],
       overlayGradient: ['rgba(0, 0, 0, 0.18)', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.80)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#06142A', '#0F2A52', '#184278'],
       blurIntensity: 16,
     };
   }
 
-  // 1pm - 3pm (13:00 - 15:00)
+  // 1pm - 3pm (13:00 - 15:00) Afternoon Sun
   if (totalMinutes < 900) {
     return {
       key: '1pm-3pm',
@@ -96,11 +107,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '01:00 PM — 03:00 PM',
       image: TIME_THEME_IMAGES['1pm-3pm'],
       overlayGradient: ['rgba(0, 0, 0, 0.18)', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.80)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#081426', '#122B4D', '#1C4372'],
       blurIntensity: 16,
     };
   }
 
-  // 3pm - 5pm (15:00 - 17:00)
+  // 3pm - 5pm (15:00 - 17:00) Warm Daylight
   if (totalMinutes < 1020) {
     return {
       key: '3pm-5pm',
@@ -108,11 +121,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '03:00 PM — 05:00 PM',
       image: TIME_THEME_IMAGES['3pm-5pm'],
       overlayGradient: ['rgba(0, 0, 0, 0.18)', 'rgba(0, 0, 0, 0.42)', 'rgba(0, 0, 0, 0.80)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#0E0E1C', '#1E1E38', '#343058'],
       blurIntensity: 16,
     };
   }
 
-  // 5pm - 6:30pm (17:00 - 18:30)
+  // 5pm - 6:30pm (17:00 - 18:30) Sunset Twilight
   if (totalMinutes < 1110) {
     return {
       key: '5pm-630pm',
@@ -120,11 +135,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '05:00 PM — 06:30 PM',
       image: TIME_THEME_IMAGES['5pm-630pm'],
       overlayGradient: ['rgba(0, 0, 0, 0.20)', 'rgba(0, 0, 0, 0.45)', 'rgba(0, 0, 0, 0.82)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#120816', '#291230', '#4A1C4E'],
       blurIntensity: 16,
     };
   }
 
-  // 6:30pm - 7:15pm (18:30 - 19:15)
+  // 6:30pm - 7:15pm (18:30 - 19:15) Magic Blue Hour
   if (totalMinutes < 1155) {
     return {
       key: '630pm-715pm',
@@ -132,11 +149,13 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '06:30 PM — 07:15 PM',
       image: TIME_THEME_IMAGES['630pm-715pm'],
       overlayGradient: ['rgba(0, 0, 0, 0.22)', 'rgba(0, 0, 0, 0.48)', 'rgba(0, 0, 0, 0.84)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#070B1C', '#121C42', '#202E68'],
       blurIntensity: 18,
     };
   }
 
-  // 7:30pm - 9pm (19:15 - 21:00)
+  // 7:30pm - 9pm (19:15 - 21:00) Evening Glow
   if (totalMinutes < 1260) {
     return {
       key: '730pm-9pm',
@@ -144,17 +163,21 @@ export const getTimeOfDayTheme = (date: Date): TimeOfDayInfo => {
       subtitle: '07:15 PM — 09:00 PM',
       image: TIME_THEME_IMAGES['730pm-9pm'],
       overlayGradient: ['rgba(0, 0, 0, 0.25)', 'rgba(0, 0, 0, 0.50)', 'rgba(0, 0, 0, 0.86)'],
+      // Darker (top) to lighter (bottom)
+      bodyGradient: ['#060917', '#101633', '#1B244F'],
       blurIntensity: 18,
     };
   }
 
-  // 9pm - 12am (21:00 - 24:00)
+  // 9pm - 12am (21:00 - 24:00) Night Sky
   return {
     key: '9pm-12am',
     name: 'Night Sky',
     subtitle: '09:00 PM — 12:00 AM',
     image: TIME_THEME_IMAGES['9pm-12am'],
     overlayGradient: ['rgba(0, 0, 0, 0.25)', 'rgba(0, 0, 0, 0.55)', 'rgba(0, 0, 0, 0.88)'],
+    // Darker (top) to lighter (bottom)
+    bodyGradient: ['#030611', '#0B132B', '#152248'],
     blurIntensity: 18,
   };
 };

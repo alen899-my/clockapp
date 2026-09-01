@@ -1,11 +1,14 @@
 import React from 'react';
 import {
+  Dimensions,
   Image,
   Platform,
   StyleSheet,
   View,
   ViewProps,
 } from 'react-native';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getTimeOfDayTheme } from '@/features/theme/timeOfDayTheme';
@@ -30,7 +33,10 @@ export const TimeThemeBackground: React.FC<TimeThemeBackgroundProps> = ({
       {/* 1. Time-Based High Resolution Wallpaper */}
       <Image
         source={timeTheme.image}
-        style={StyleSheet.absoluteFill}
+        style={[
+          StyleSheet.absoluteFill,
+          { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
+        ]}
         resizeMode="cover"
       />
 
@@ -51,23 +57,6 @@ export const TimeThemeBackground: React.FC<TimeThemeBackgroundProps> = ({
         style={StyleSheet.absoluteFill}
       />
 
-      {/* 4. White Liquid Glass Ambient Specular Sheen */}
-      <View
-        style={[
-          styles.whiteGlassGlowTop,
-          {
-            backgroundColor: 'rgba(255, 255, 255, 0.12)',
-          },
-        ]}
-      />
-      <View
-        style={[
-          styles.whiteGlassGlowCenter,
-          {
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-          },
-        ]}
-      />
 
       {/* 5. Live App Content */}
       <View style={styles.content}>{children}</View>
@@ -84,22 +73,5 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  whiteGlassGlowTop: {
-    position: 'absolute',
-    top: -60,
-    right: -30,
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    transform: [{ scale: 1.2 }],
-  },
-  whiteGlassGlowCenter: {
-    position: 'absolute',
-    top: '30%',
-    left: -80,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    transform: [{ scale: 1.1 }],
-  },
+
 });
