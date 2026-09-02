@@ -130,7 +130,7 @@ export const CreateTimelineModal: React.FC<CreateTimelineModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={[styles.headerTitle, { color: theme.textBase }]}>Add Timeline Plan</Text>
+              <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Add Timeline Plan</Text>
               <Text style={[styles.headerSubtitle, { color: theme.textMuted }]}>
                 Schedule a routine or focus block
               </Text>
@@ -145,7 +145,7 @@ export const CreateTimelineModal: React.FC<CreateTimelineModalProps> = ({
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>PLAN TITLE</Text>
               <TextInput
-                style={[styles.input, isDark ? styles.inputDark : styles.inputLight, { color: theme.textBase }]}
+                style={[styles.input, isDark ? styles.inputDark : styles.inputLight, { color: theme.textPrimary }]}
                 placeholder="e.g. Deep Work, Gym, Reading..."
                 placeholderTextColor={theme.textMuted}
                 value={title}
@@ -178,7 +178,7 @@ export const CreateTimelineModal: React.FC<CreateTimelineModalProps> = ({
                       <Text
                         style={[
                           styles.catLabel,
-                          { color: isSelected ? '#FFFFFF' : theme.textBase },
+                          { color: isSelected ? '#FFFFFF' : theme.textPrimary },
                         ]}
                       >
                         {cat.label}
@@ -195,31 +195,31 @@ export const CreateTimelineModal: React.FC<CreateTimelineModalProps> = ({
               <View style={styles.timeCol}>
                 <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>START TIME</Text>
                 <View style={[styles.timeBox, isDark ? styles.timeBoxDark : styles.timeBoxLight]}>
-                  <Text style={[styles.timeValText, { color: theme.textBase }]}>{startTime}</Text>
+                  <Text style={[styles.timeValText, { color: theme.textPrimary }]}>{startTime}</Text>
                   <View style={styles.adjustBtnsRow}>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setStartTime(adjustHour(startTime, -1))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>-1h</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>-1h</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setStartTime(adjustMinute(startTime, -15))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>-15m</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>-15m</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setStartTime(adjustMinute(startTime, 15))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>+15m</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+15m</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setStartTime(adjustHour(startTime, 1))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>+1h</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+1h</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -229,31 +229,31 @@ export const CreateTimelineModal: React.FC<CreateTimelineModalProps> = ({
               <View style={styles.timeCol}>
                 <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>END TIME</Text>
                 <View style={[styles.timeBox, isDark ? styles.timeBoxDark : styles.timeBoxLight]}>
-                  <Text style={[styles.timeValText, { color: theme.textBase }]}>{endTime}</Text>
+                  <Text style={[styles.timeValText, { color: theme.textPrimary }]}>{endTime}</Text>
                   <View style={styles.adjustBtnsRow}>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setEndTime(adjustHour(endTime, -1))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>-1h</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>-1h</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setEndTime(adjustMinute(endTime, -15))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>-15m</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>-15m</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setEndTime(adjustMinute(endTime, 15))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>+15m</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+15m</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.stepBtn}
                       onPress={() => setEndTime(adjustHour(endTime, 1))}
                     >
-                      <Text style={[styles.stepBtnText, { color: theme.textBase }]}>+1h</Text>
+                      <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+1h</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -327,7 +327,7 @@ export const CreateTimelineModal: React.FC<CreateTimelineModalProps> = ({
             <View style={styles.fieldGroup}>
               <Text style={[styles.fieldLabel, { color: theme.textMuted }]}>OPTIONAL NOTES</Text>
               <TextInput
-                style={[styles.input, isDark ? styles.inputDark : styles.inputLight, { color: theme.textBase }]}
+                style={[styles.input, isDark ? styles.inputDark : styles.inputLight, { color: theme.textPrimary }]}
                 placeholder="Key focus items, links, reminders..."
                 placeholderTextColor={theme.textMuted}
                 value={notes}
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
   },
   modalSheet: {

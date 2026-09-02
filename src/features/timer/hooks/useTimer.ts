@@ -7,7 +7,7 @@ export const useTimer = () => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(300);
   const [timerState, setTimerState] = useState<TimerState>('idle');
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (timerState === 'running') {

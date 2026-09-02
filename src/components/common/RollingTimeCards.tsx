@@ -17,61 +17,63 @@ interface SingleCardProps {
 }
 
 const CARD_HEIGHT = 86;
-const HALF_HEIGHT = CARD_HEIGHT / 2;
+const CARD_WIDTH = '100%';
 
 const SinglePaperFoldCard: React.FC<SingleCardProps> = ({ value, label, isDark = true }) => {
-  const [topNumber, setTopNumber] = useState(value);
-  const [bottomNumber, setBottomNumber] = useState(value);
-  const [incomingNumber, setIncomingNumber] = useState(value);
-  const [isFlipping, setIsFlipping] = useState(false);
+  const [displayedValue, setDisplayedValue] = useState(value);
+  const [prevValue, setPrevValue] = useState(value);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // 3D fold animation: 0 -> 1 (0deg to -180deg folding up)
-  const flipAnim = useRef(new Animated.Value(0)).current;
+  const anim = useRef(new Animated.Value(0)).current;
+  const currentValRef = useRef(value);
+  const prevValRef = useRef(value);
 
   useEffect(() => {
-    if (value !== topNumber && !isFlipping) {
-      setIncomingNumber(value);
-      setIsFlipping(true);
+    if (value !== currentValRef.current) {
+      prevValRef.current = currentValRef.current;
+      currentValRef.current = value;
+      setPrevValue(prevValRef.current);
+      setDisplayedValue(value);
+      setIsAnimating(true);
 
-      flipAnim.setValue(0);
-      Animated.timing(flipAnim, {
+      anim.setValue(0);
+      Animated.timing(anim, {
         toValue: 1,
-        duration: 420,
-        easing: Easing.inOut(Easing.cubic),
+        duration: 380,
+        easing: Easing.bezier(0.22, 1, 0.36, 1),
         useNativeDriver: true,
       }).start(() => {
-        setTopNumber(value);
-        setBottomNumber(value);
-        setIsFlipping(false);
-        flipAnim.setValue(0);
+        setIsAnimating(false);
       });
     }
-  }, [value, topNumber, isFlipping, flipAnim]);
+  }, [value, anim]);
 
-  // Top half folding backwards / up (0deg to -90deg)
-  const topFoldRotate = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: ['0deg', '-90deg', '-90deg'],
+  // Outgoing digit animations (slides up & fades slightly with depth tilt)
+  const outgoingTranslateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -CARD_HEIGHT * 0.45],
   });
-  const topFoldOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.49, 0.5, 1],
-    outputRange: [1, 1, 0, 0],
+  const outgoingOpacity = anim.interpolate({
+    inputRange: [0, 0.65, 1],
+    outputRange: [1, 0.2, 0],
   });
-
-  // Bottom half folding up into place (-90deg to 0deg)
-  const bottomFoldRotate = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: ['90deg', '90deg', '0deg'],
-  });
-  const bottomFoldOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 0.51, 1],
-    outputRange: [0, 0, 1, 1],
+  const outgoingScale = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.88],
   });
 
-  // Dynamic shadow as paper folds
-  const foldShadowOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0.45, 0],
+  // Incoming digit animations (slides up into center with bounce-less precision)
+  const incomingTranslateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [CARD_HEIGHT * 0.45, 0],
+  });
+  const incomingOpacity = anim.interpolate({
+    inputRange: [0, 0.35, 1],
+    outputRange: [0, 0.8, 1],
+  });
+  const incomingScale = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.88, 1],
   });
 
   return (
@@ -87,113 +89,112 @@ const SinglePaperFoldCard: React.FC<SingleCardProps> = ({ value, label, isDark =
           />
         ) : null}
 
-        {/* ── 1. BACKGROUND UNDERNEATH: Top Half (New Number) & Bottom Half (Old Number) ── */}
-        <View style={styles.staticBackdrop}>
-          {/* Incoming Top Half */}
-          <View style={styles.topHalfBox}>
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['rgba(255, 255, 255, 0.22)', 'rgba(255, 255, 255, 0.08)']
-                  : ['#FFFFFF', '#FBF8F2']
-              }
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.numberPositionerTop}>
-              <Text style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}>
-                {isFlipping ? incomingNumber : topNumber}
-              </Text>
-            </View>
-          </View>
+        {/* Layer 2: Translucent Paper Gradient */}
+        <LinearGradient
+          colors={
+            isDark
+              ? ['rgba(255, 255, 255, 0.18)', 'rgba(255, 255, 255, 0.07)', 'rgba(255, 255, 255, 0.03)']
+              : ['#FFFFFF', '#FDFCFA', '#F3EFE7']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
 
-          {/* Bottom Half */}
-          <View style={styles.bottomHalfBox}>
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.02)']
-                  : ['#F6F2E9', '#ECE6D9']
-              }
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.numberPositionerBottom}>
-              <Text style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}>
-                {bottomNumber}
+        {/* Top Half Sheen Overlay */}
+        <LinearGradient
+          colors={
+            isDark
+              ? ['rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.0)']
+              : ['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.0)']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 0.5 }}
+          style={styles.topSheen}
+        />
+
+        {/* Bottom Half Shadow Overlay */}
+        <LinearGradient
+          colors={
+            isDark
+              ? ['rgba(0, 0, 0, 0.0)', 'rgba(0, 0, 0, 0.35)']
+              : ['rgba(0, 0, 0, 0.0)', 'rgba(0, 0, 0, 0.08)']
+          }
+          start={{ x: 0, y: 0.5 }}
+          end={{ x: 0, y: 1 }}
+          style={styles.bottomSheen}
+        />
+
+        {/* ── Digits Container ── */}
+        <View style={styles.digitFrame}>
+          {isAnimating ? (
+            <>
+              {/* Outgoing Digit */}
+              <Animated.View
+                style={[
+                  styles.digitWrapper,
+                  {
+                    opacity: outgoingOpacity,
+                    transform: [
+                      { translateY: outgoingTranslateY },
+                      { scale: outgoingScale },
+                    ],
+                  },
+                ]}
+              >
+                <Text
+                  numberOfLines={1}
+                  style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}
+                >
+                  {prevValue}
+                </Text>
+              </Animated.View>
+
+              {/* Incoming Digit */}
+              <Animated.View
+                style={[
+                  styles.digitWrapper,
+                  {
+                    opacity: incomingOpacity,
+                    transform: [
+                      { translateY: incomingTranslateY },
+                      { scale: incomingScale },
+                    ],
+                  },
+                ]}
+              >
+                <Text
+                  numberOfLines={1}
+                  style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}
+                >
+                  {displayedValue}
+                </Text>
+              </Animated.View>
+            </>
+          ) : (
+            <View style={styles.digitWrapper}>
+              <Text
+                numberOfLines={1}
+                style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}
+              >
+                {displayedValue}
               </Text>
             </View>
-          </View>
+          )}
         </View>
 
-        {/* ── 2. FLIPPING LEAF 1: Top Half Folding Upwards (Old Number) ── */}
-        {isFlipping && (
-          <Animated.View
-            style={[
-              styles.topHalfBox,
-              styles.animatedFlapTop,
-              {
-                opacity: topFoldOpacity,
-                transform: [
-                  { perspective: 600 },
-                  { translateY: HALF_HEIGHT / 2 },
-                  { rotateX: topFoldRotate },
-                  { translateY: -HALF_HEIGHT / 2 },
-                ],
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['rgba(255, 255, 255, 0.22)', 'rgba(255, 255, 255, 0.08)']
-                  : ['#FFFFFF', '#FBF8F2']
-              }
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.numberPositionerTop}>
-              <Text style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}>
-                {topNumber}
-              </Text>
-            </View>
-            <Animated.View style={[styles.foldShadow, { opacity: foldShadowOpacity }]} />
-          </Animated.View>
-        )}
+        {/* ── Center Fold Seam & Side Hinges (Split-Flap Look) ── */}
+        <View style={styles.creaseContainer} pointerEvents="none">
+          <View style={[styles.creaseLineDark, !isDark && styles.creaseLineLight]} />
+          <View style={[styles.creaseLineHighlight, !isDark && styles.creaseLineHighlightLight]} />
+        </View>
 
-        {/* ── 3. FLIPPING LEAF 2: Bottom Half Folding Down into Place (New Number) ── */}
-        {isFlipping && (
-          <Animated.View
-            style={[
-              styles.bottomHalfBox,
-              styles.animatedFlapBottom,
-              {
-                opacity: bottomFoldOpacity,
-                transform: [
-                  { perspective: 600 },
-                  { translateY: -HALF_HEIGHT / 2 },
-                  { rotateX: bottomFoldRotate },
-                  { translateY: HALF_HEIGHT / 2 },
-                ],
-              },
-            ]}
-          >
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['rgba(255, 255, 255, 0.08)', 'rgba(255, 255, 255, 0.02)']
-                  : ['#F6F2E9', '#ECE6D9']
-              }
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.numberPositionerBottom}>
-              <Text style={[styles.digitText, isDark ? styles.digitDark : styles.digitLight]}>
-                {incomingNumber}
-              </Text>
-            </View>
-            <Animated.View style={[styles.foldShadow, { opacity: foldShadowOpacity }]} />
-          </Animated.View>
-        )}
+        {/* Side Split-Flap Notches */}
+        <View style={[styles.sideNotchLeft, isDark ? styles.notchDark : styles.notchLight]} pointerEvents="none" />
+        <View style={[styles.sideNotchRight, isDark ? styles.notchDark : styles.notchLight]} pointerEvents="none" />
 
-        {/* ── 4. Top Tape / Adhesive Strip ── */}
-        <View style={[styles.topTape, isDark ? styles.tapeDark : styles.tapeLight]} />
+        {/* ── Top Tape / Adhesive Strip ── */}
+        <View style={[styles.topTape, isDark ? styles.tapeDark : styles.tapeLight]} pointerEvents="none" />
       </View>
 
       {/* ── Label (HOURS, MINS, SECS) ── */}
@@ -223,8 +224,20 @@ export const RollingTimeCards: React.FC<RollingTimeCardsProps> = ({
         {/* 1. Hours Paper Card */}
         <SinglePaperFoldCard value={hours} label="HOURS" isDark={isDark} />
 
+        {/* Separator Dots */}
+        <View style={styles.dotsCol}>
+          <View style={[styles.colonDot, isDark ? styles.dotDark : styles.dotLight]} />
+          <View style={[styles.colonDot, isDark ? styles.dotDark : styles.dotLight]} />
+        </View>
+
         {/* 2. Minutes Paper Card */}
         <SinglePaperFoldCard value={minutes} label="MINS" isDark={isDark} />
+
+        {/* Separator Dots */}
+        <View style={styles.dotsCol}>
+          <View style={[styles.colonDot, isDark ? styles.dotDark : styles.dotLight]} />
+          <View style={[styles.colonDot, isDark ? styles.dotDark : styles.dotLight]} />
+        </View>
 
         {/* 3. Seconds Paper Card */}
         <SinglePaperFoldCard value={seconds} label="SECS" isDark={isDark} />
@@ -244,14 +257,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 8,
   },
   cardCol: {
     flex: 1,
     alignItems: 'center',
   },
   cardContainer: {
-    width: '100%',
+    width: CARD_WIDTH,
     height: CARD_HEIGHT,
     borderRadius: 14,
     overflow: 'hidden',
@@ -273,92 +286,152 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAF8F5',
     borderColor: 'rgba(0, 0, 0, 0.14)',
   },
-  staticBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  topHalfBox: {
+  topSheen: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: HALF_HEIGHT,
-    overflow: 'hidden',
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    height: CARD_HEIGHT * 0.5,
   },
-  bottomHalfBox: {
+  bottomSheen: {
     position: 'absolute',
-    top: HALF_HEIGHT,
+    bottom: 0,
     left: 0,
     right: 0,
-    height: HALF_HEIGHT,
-    overflow: 'hidden',
-    borderBottomLeftRadius: 14,
-    borderBottomRightRadius: 14,
+    height: CARD_HEIGHT * 0.5,
   },
-  animatedFlapTop: {
-    zIndex: 20,
-    backfaceVisibility: 'hidden',
-  },
-  animatedFlapBottom: {
-    zIndex: 20,
-    backfaceVisibility: 'hidden',
-  },
-  numberPositionerTop: {
+  digitFrame: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: CARD_HEIGHT,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  numberPositionerBottom: {
+  digitWrapper: {
     position: 'absolute',
-    top: -HALF_HEIGHT,
+    top: 0,
     left: 0,
     right: 0,
-    height: CARD_HEIGHT,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
   digitText: {
-    fontSize: 42,
+    fontSize: 40,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
     letterSpacing: -1,
+    textAlign: 'center',
+    includeFontPadding: false,
+    lineHeight: CARD_HEIGHT,
   },
   digitDark: {
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.70)',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 6,
+    textShadowRadius: 8,
   },
   digitLight: {
     color: '#0F172A',
   },
-  foldShadow: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000000',
+  creaseContainer: {
+    position: 'absolute',
+    top: CARD_HEIGHT / 2 - 1,
+    left: 0,
+    right: 0,
+    height: 2,
+    zIndex: 30,
+  },
+  creaseLineDark: {
+    height: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
+  creaseLineHighlight: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.16)',
+  },
+  creaseLineLight: {
+    height: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
+  },
+  creaseLineHighlightLight: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  },
+  sideNotchLeft: {
+    position: 'absolute',
+    top: CARD_HEIGHT / 2 - 4,
+    left: -1,
+    width: 4,
+    height: 8,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    zIndex: 32,
+  },
+  sideNotchRight: {
+    position: 'absolute',
+    top: CARD_HEIGHT / 2 - 4,
+    right: -1,
+    width: 4,
+    height: 8,
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 4,
+    zIndex: 32,
+  },
+  notchDark: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  notchLight: {
+    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
   },
   topTape: {
     position: 'absolute',
     top: 0,
-    left: '28%',
-    right: '28%',
+    left: '26%',
+    right: '26%',
     height: 6,
     borderRadius: 3,
     zIndex: 35,
   },
   tapeDark: {
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.28)',
     borderWidth: 0.5,
-    borderColor: 'rgba(255, 255, 255, 0.40)',
+    borderColor: 'rgba(255, 255, 255, 0.45)',
   },
   tapeLight: {
-    backgroundColor: 'rgba(251, 191, 36, 0.45)',
+    backgroundColor: 'rgba(251, 191, 36, 0.5)',
     borderWidth: 0.5,
-    borderColor: 'rgba(245, 158, 11, 0.50)',
+    borderColor: 'rgba(245, 158, 11, 0.55)',
+  },
+  dotsCol: {
+    height: CARD_HEIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingTop: 0,
+    marginBottom: 16,
+  },
+  colonDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  dotDark: {
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 2,
+  },
+  dotLight: {
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
   },
   cardLabel: {
     fontSize: 10,
@@ -377,3 +450,4 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
 });
+

@@ -48,6 +48,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, settings } = useAppTheme();
   const { currentTime } = useWorldClocks();
+  const [clockMode, setClockMode] = useState<'cards' | 'analog' | 'digital'>('cards');
 
   const timeTheme = getTimeOfDayTheme(currentTime);
   const greeting = getGreeting(currentTime);
@@ -70,6 +71,14 @@ export default function HomeScreen() {
     ? (['#000000', '#000000', '#000000'] as [string, string, string])
     : (['#FFFFFF', '#FAFBFC', '#F4F6F8'] as [string, string, string]);
 
+  const cycleClockMode = () => {
+    setClockMode((prev) => {
+      if (prev === 'cards') return 'analog';
+      if (prev === 'analog') return 'digital';
+      return 'cards';
+    });
+  };
+
   return (
     <View style={[styles.root, { backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
       {/* ── Background under the Hero Image (Black on dark mode, Snow on light mode) ── */}
@@ -85,15 +94,20 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}
       >
         {/* ── HERO IMAGE & CLOCK SECTION ── */}
-        <View style={[styles.heroWrapper, { minHeight: HERO_HEIGHT + insets.top }]}>
+        <View style={[styles.heroWrapper, { minHeight: HERO_HEIGHT + insets.top + (clockMode === 'analog' ? 60 : 0) }]}>
           <Image
             source={timeTheme.image}
-            style={[styles.heroImage, { width: SCREEN_WIDTH, height: HERO_HEIGHT + insets.top + 30 }]}
+            style={[
+              styles.heroImage,
+              {
+                width: SCREEN_WIDTH,
+                height: HERO_HEIGHT + insets.top + (clockMode === 'analog' ? 90 : 30),
+              },
+            ]}
             resizeMode="cover"
           />
 
-
-          {/* Top bar */}
+          {/* Top bar with Clock Switcher */}
           <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
             <View style={styles.topBarBtn}>
               {Platform.OS !== 'web' && (
@@ -101,9 +115,34 @@ export default function HomeScreen() {
               )}
               <Ionicons name="menu-outline" size={20} color="#fff" />
             </View>
+
+            {/* Quick Clock Style Switcher Button */}
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={cycleClockMode}
+              style={styles.clockModeSwitchBtn}
+            >
+              {Platform.OS !== 'web' && (
+                <BlurView intensity={35} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
+              )}
+              <Ionicons
+                name={
+                  clockMode === 'cards'
+                    ? 'layers-outline'
+                    : clockMode === 'analog'
+                    ? 'disc-outline'
+                    : 'time-outline'
+                }
+                size={16}
+                color="#FFFFFF"
+              />
+              <Text style={styles.clockModeSwitchText}>
+                {clockMode === 'cards' ? 'Cards' : clockMode === 'analog' ? 'Dial' : 'Digital'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Hero Content: Greeting & Date on top, 3 Paper Calendar Time Cards in center */}
+          {/* Hero Content: Greeting & Date on top, Live Clock in center */}
           <View style={[styles.heroContent, { paddingTop: insets.top + 52 }]}>
             {/* Greeting & Date Header Row */}
             <View style={styles.greetingHeaderRow}>
@@ -117,15 +156,52 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* 3 Paper Calendar Rolling Time Cards (Hours, Minutes, Seconds) */}
-            <View style={styles.rollingCardsWrapper}>
-              <RollingTimeCards
-                hours={hoursStr}
-                minutes={minutesStr}
-                seconds={secondsStr}
-                isDark={isDark}
-              />
-            </View>
+            {/* Live Clock Display (Cards / Analog / Digital) */}
+            <TouchableOpacity
+              activeOpacity={0.92}
+              onPress={cycleClockMode}
+              style={styles.clockDisplayWrapper}
+            >
+              {clockMode === 'cards' && (
+                <View style={styles.rollingCardsWrapper}>
+                  <RollingTimeCards
+                    hours={hoursStr}
+                    minutes={minutesStr}
+                    seconds={secondsStr}
+                    isDark={isDark}
+                  />
+                </View>
+              )}
+
+              {clockMode === 'analog' && (
+                <View style={styles.analogClockWrapper}>
+                  <AnalogClock date={currentTime} size={Math.min(SCREEN_WIDTH * 0.52, 210)} />
+                </View>
+              )}
+
+              {clockMode === 'digital' && (
+                <View style={styles.digitalGlassCard}>
+                  {Platform.OS !== 'web' && (
+                    <BlurView intensity={35} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
+                  )}
+                  <LinearGradient
+                    colors={
+                      isDark
+                        ? ['rgba(255, 255, 255, 0.16)', 'rgba(255, 255, 255, 0.04)']
+                        : ['rgba(255, 255, 255, 0.95)', 'rgba(245, 240, 230, 0.9)']
+                    }
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <Text style={[styles.digitalHeroTime, isDark ? styles.digitDark : styles.digitLight]}>
+                    {hoursStr}:{minutesStr}
+                    <Text style={styles.digitalHeroSeconds}>:{secondsStr}</Text>
+                  </Text>
+                  <Text style={[styles.digitalHeroDate, isDark ? styles.cardLabelDark : styles.cardLabelLight]}>
+                    {!is24Hour ? (h24 >= 12 ? 'PM' : 'AM') : '24H'} • {fullDate}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -172,6 +248,86 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.28)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.18)',
+  },
+  clockModeSwitchBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.32)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    gap: 6,
+  },
+  clockModeSwitchText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  clockDisplayWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  analogClockWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  digitalGlassCard: {
+    width: '100%',
+    borderRadius: 20,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: Spacing.lg,
+    borderWidth: 1.2,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  digitalHeroTime: {
+    fontSize: 48,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+    letterSpacing: -1,
+  },
+  digitalHeroSeconds: {
+    fontSize: 28,
+    fontWeight: '600',
+    opacity: 0.8,
+  },
+  digitalHeroDate: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginTop: 4,
+    textTransform: 'uppercase',
+  },
+  digitDark: {
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
+  },
+  digitLight: {
+    color: '#0F172A',
+  },
+  cardLabelDark: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    textShadowColor: 'rgba(0, 0, 0, 0.7)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  cardLabelLight: {
+    color: '#64748B',
   },
   heroContent: {
     paddingHorizontal: Spacing.lg,
