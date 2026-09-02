@@ -20,6 +20,8 @@ import { useWorldClocks } from '@/features/world-clock/hooks/useWorldClocks';
 import { useAppTheme } from '@/features/theme/useThemeSettings';
 import { getTimeOfDayTheme } from '@/features/theme/timeOfDayTheme';
 import { getFullFormattedDate } from '@/utils/time';
+import { useAuth } from '@/features/auth/useAuth';
+import { UserProfileModal } from '@/features/auth/components/UserProfileModal';
 import { Spacing, Typography } from '@/constants/theme';
 import { ScrollView } from 'react-native';
 
@@ -47,8 +49,10 @@ function getGreetingEmoji(date: Date): string {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark, settings } = useAppTheme();
+  const { user } = useAuth();
   const { currentTime } = useWorldClocks();
   const [clockMode, setClockMode] = useState<'cards' | 'analog' | 'digital'>('cards');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const timeTheme = getTimeOfDayTheme(currentTime);
   const greeting = getGreeting(currentTime);
@@ -107,14 +111,18 @@ export default function HomeScreen() {
             resizeMode="cover"
           />
 
-          {/* Top bar with Clock Switcher */}
+          {/* Top bar with Profile & Clock Switcher */}
           <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
-            <View style={styles.topBarBtn}>
+            <TouchableOpacity
+              style={styles.topBarBtn}
+              onPress={() => setIsProfileOpen(true)}
+              activeOpacity={0.75}
+            >
               {Platform.OS !== 'web' && (
                 <BlurView intensity={28} tint="dark" style={[StyleSheet.absoluteFill, { borderRadius: 20 }]} />
               )}
-              <Ionicons name="menu-outline" size={20} color="#fff" />
-            </View>
+              <Ionicons name="person-circle-outline" size={22} color="#fff" />
+            </TouchableOpacity>
 
             {/* Quick Clock Style Switcher Button */}
             <TouchableOpacity
@@ -147,7 +155,7 @@ export default function HomeScreen() {
             {/* Greeting & Date Header Row */}
             <View style={styles.greetingHeaderRow}>
               <View style={styles.greetingCol}>
-                <Text style={styles.greetingLine1}>{greeting} {emoji}</Text>
+                <Text style={styles.greetingLine1}>{greeting}{user?.name ? `, ${user.name.split(' ')[0]}` : ''} {emoji}</Text>
                 <Text style={styles.greetingSubtitle}>Make every moment count.</Text>
               </View>
 
@@ -208,6 +216,12 @@ export default function HomeScreen() {
         {/* ── TODAY'S TIMELINE FEATURE ── */}
         <TodayTimelineSection currentTime={currentTime} />
       </ScrollView>
+
+      {/* ── User Profile & Logout Modal ── */}
+      <UserProfileModal
+        visible={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
     </View>
   );
 }
@@ -330,6 +344,9 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   heroContent: {
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
     paddingHorizontal: Spacing.lg,
     paddingBottom: 14,
     justifyContent: 'space-between',
@@ -379,6 +396,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   rollingCardsWrapper: {
+    width: '100%',
+    maxWidth: 440,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 4,

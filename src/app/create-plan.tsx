@@ -196,11 +196,19 @@ export default function CreatePlanScreen() {
       }));
 
       await replaceTodayItems(itemsToSave);
-      router.back();
+      handleBack();
     } catch (err) {
       console.error('Failed to save timeline plan:', err);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
     }
   };
 
@@ -217,7 +225,7 @@ export default function CreatePlanScreen() {
       <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
         <TouchableOpacity
           style={[styles.backBtn, isDark ? styles.backBtnDark : styles.backBtnLight]}
-          onPress={() => router.back()}
+          onPress={handleBack}
           activeOpacity={0.75}
         >
           <Ionicons name="arrow-back" size={20} color={isDark ? '#FFFFFF' : '#0F172A'} />

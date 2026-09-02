@@ -17,9 +17,8 @@ interface SingleCardProps {
 }
 
 const CARD_HEIGHT = 86;
-const CARD_WIDTH = '100%';
 
-const SinglePaperFoldCard: React.FC<SingleCardProps> = ({ value, label, isDark = true }) => {
+const SinglePaperFoldCardComponent: React.FC<SingleCardProps> = ({ value, label, isDark = true }) => {
   const [displayedValue, setDisplayedValue] = useState(value);
   const [prevValue, setPrevValue] = useState(value);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -39,90 +38,70 @@ const SinglePaperFoldCard: React.FC<SingleCardProps> = ({ value, label, isDark =
       anim.setValue(0);
       Animated.timing(anim, {
         toValue: 1,
-        duration: 380,
-        easing: Easing.bezier(0.22, 1, 0.36, 1),
-        useNativeDriver: true,
-      }).start(() => {
-        setIsAnimating(false);
+        duration: 340,
+        easing: Easing.bezier(0.25, 1, 0.5, 1),
+        useNativeDriver: Platform.OS !== 'web',
+      }).start(({ finished }) => {
+        if (finished) {
+          setIsAnimating(false);
+        }
       });
     }
   }, [value, anim]);
 
-  // Outgoing digit animations (slides up & fades slightly with depth tilt)
+  // Outgoing digit animations (slides up & fades smoothly)
   const outgoingTranslateY = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -CARD_HEIGHT * 0.45],
   });
   const outgoingOpacity = anim.interpolate({
-    inputRange: [0, 0.65, 1],
+    inputRange: [0, 0.7, 1],
     outputRange: [1, 0.2, 0],
   });
   const outgoingScale = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [1, 0.88],
+    outputRange: [1, 0.90],
   });
 
-  // Incoming digit animations (slides up into center with bounce-less precision)
+  // Incoming digit animations (slides up into center smoothly)
   const incomingTranslateY = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [CARD_HEIGHT * 0.45, 0],
   });
   const incomingOpacity = anim.interpolate({
-    inputRange: [0, 0.35, 1],
+    inputRange: [0, 0.3, 1],
     outputRange: [0, 0.8, 1],
   });
   const incomingScale = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.88, 1],
+    outputRange: [0.90, 1],
   });
+
+  const isIos = Platform.OS === 'ios';
 
   return (
     <View style={styles.cardCol}>
       {/* ── Paper Card Container ── */}
       <View style={[styles.cardContainer, isDark ? styles.cardDark : styles.cardLight]}>
-        {/* Layer 1: Frosted Glass Background (Dark Mode) */}
-        {isDark && Platform.OS !== 'web' ? (
+        {/* Layer 1: Frosted Glass Background for iOS */}
+        {isIos && isDark ? (
           <BlurView
-            intensity={45}
+            intensity={40}
             tint="dark"
-            style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+            style={[StyleSheet.absoluteFill, { borderRadius: 14 }]}
           />
         ) : null}
 
-        {/* Layer 2: Translucent Paper Gradient */}
+        {/* Layer 2: Consolidated High-Performance Gradient */}
         <LinearGradient
           colors={
             isDark
-              ? ['rgba(255, 255, 255, 0.18)', 'rgba(255, 255, 255, 0.07)', 'rgba(255, 255, 255, 0.03)']
-              : ['#FFFFFF', '#FDFCFA', '#F3EFE7']
+              ? ['rgba(255, 255, 255, 0.16)', 'rgba(255, 255, 255, 0.05)', 'rgba(0, 0, 0, 0.22)']
+              : ['#FFFFFF', '#FAF7F2', '#EFE9DF']
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={StyleSheet.absoluteFill}
-        />
-
-        {/* Top Half Sheen Overlay */}
-        <LinearGradient
-          colors={
-            isDark
-              ? ['rgba(255, 255, 255, 0.12)', 'rgba(255, 255, 255, 0.0)']
-              : ['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.0)']
-          }
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 0.5 }}
-          style={styles.topSheen}
-        />
-
-        {/* Bottom Half Shadow Overlay */}
-        <LinearGradient
-          colors={
-            isDark
-              ? ['rgba(0, 0, 0, 0.0)', 'rgba(0, 0, 0, 0.35)']
-              : ['rgba(0, 0, 0, 0.0)', 'rgba(0, 0, 0, 0.08)']
-          }
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 0, y: 1 }}
-          style={styles.bottomSheen}
         />
 
         {/* ── Digits Container ── */}
@@ -205,6 +184,15 @@ const SinglePaperFoldCard: React.FC<SingleCardProps> = ({ value, label, isDark =
   );
 };
 
+// Memoize Single Card to prevent HOURS & MINS re-rendering every second
+const SinglePaperFoldCard = React.memo(
+  SinglePaperFoldCardComponent,
+  (prev, next) =>
+    prev.value === next.value &&
+    prev.label === next.label &&
+    prev.isDark === next.isDark
+);
+
 interface RollingTimeCardsProps {
   hours: string;
   minutes: string;
@@ -212,7 +200,7 @@ interface RollingTimeCardsProps {
   isDark?: boolean;
 }
 
-export const RollingTimeCards: React.FC<RollingTimeCardsProps> = ({
+export const RollingTimeCards: React.FC<RollingTimeCardsProps> = React.memo(({
   hours,
   minutes,
   seconds,
@@ -244,11 +232,13 @@ export const RollingTimeCards: React.FC<RollingTimeCardsProps> = ({
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   outerContainer: {
     width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -264,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardContainer: {
-    width: CARD_WIDTH,
+    width: '100%',
     height: CARD_HEIGHT,
     borderRadius: 14,
     overflow: 'hidden',
@@ -272,33 +262,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1.2,
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 3,
     position: 'relative',
   },
   cardDark: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: 'rgba(255, 255, 255, 0.35)',
+    backgroundColor: 'rgba(28, 28, 30, 0.85)',
+    borderColor: 'rgba(255, 255, 255, 0.28)',
   },
   cardLight: {
     backgroundColor: '#FAF8F5',
-    borderColor: 'rgba(0, 0, 0, 0.14)',
-  },
-  topSheen: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: CARD_HEIGHT * 0.5,
-  },
-  bottomSheen: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: CARD_HEIGHT * 0.5,
+    borderColor: 'rgba(0, 0, 0, 0.12)',
   },
   digitFrame: {
     position: 'absolute',
@@ -320,19 +296,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   digitText: {
-    fontSize: 40,
+    fontSize: 38,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
     letterSpacing: -1,
     textAlign: 'center',
     includeFontPadding: false,
-    lineHeight: CARD_HEIGHT,
   },
   digitDark: {
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowColor: 'rgba(0, 0, 0, 0.55)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   digitLight: {
     color: '#0F172A',
@@ -425,10 +400,6 @@ const styles = StyleSheet.create({
   },
   dotDark: {
     backgroundColor: 'rgba(255, 255, 255, 0.65)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.5,
-    shadowRadius: 2,
   },
   dotLight: {
     backgroundColor: 'rgba(15, 23, 42, 0.45)',
@@ -442,12 +413,8 @@ const styles = StyleSheet.create({
   },
   cardLabelDark: {
     color: 'rgba(255, 255, 255, 0.85)',
-    textShadowColor: 'rgba(0, 0, 0, 0.7)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
   },
   cardLabelLight: {
     color: '#64748B',
   },
 });
-

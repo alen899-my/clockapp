@@ -129,6 +129,9 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 14,
     paddingBottom: 28,
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
   },
   headerRow: {
     flexDirection: 'row',

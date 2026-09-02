@@ -50,6 +50,9 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+server/.env
+server/.env.*
+server/node_modules/
 
 # TypeScript
 *.tsbuildinfo
