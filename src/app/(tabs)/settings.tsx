@@ -27,6 +27,19 @@ export default function SettingsScreen() {
           },
         ]}
       >
+        {/* EAS Workflow Banner */}
+        <View style={[styles.easBanner, { backgroundColor: theme.primary + '20', borderLeftColor: theme.primary }]}>
+          <View style={styles.bannerContent}>
+            <Ionicons name="checkmark-circle" size={24} color={theme.primary} />
+            <View style={styles.bannerText}>
+              <Text style={[styles.bannerTitle, { color: theme.primary }]}>EAS Workflow Enabled</Text>
+              <Text style={[styles.bannerSubtitle, { color: theme.textSecondary }]}>
+                Continuous integration & deployment configured
+              </Text>
+            </View>
+          </View>
+        </View>
+
         {/* Scrollable Screen Header */}
         <ScreenHeader
           title="Settings"
@@ -157,5 +170,32 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: '700',
+  },
+  easBanner: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  bannerText: {
+    marginLeft: Spacing.md,
+    flex: 1,
+  },
+  bannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  bannerSubtitle: {
+    fontSize: 12,
   },
 });
